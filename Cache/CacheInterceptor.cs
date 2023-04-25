@@ -1,18 +1,22 @@
 ﻿namespace ClassCache.Cache
 {
     using Castle.DynamicProxy;
+    using ClassCache.Cache.Attributes;
     using System.Reflection;
-    using System.Reflection.Metadata;
 
     public class CacheInterceptor : IInterceptor
     {
         private static readonly MethodInfo? handleAsyncMethodInfo = typeof(CacheInterceptor).GetMethod("HandleAsyncWithResult", BindingFlags.Instance | BindingFlags.NonPublic);
 
-        public ICacheProvider _cacheProvider; 
+        public readonly ICacheProvider _cacheProvider;
+        public readonly ICacheDurationProvider _durationProvider;
 
-        public CacheInterceptor(ICacheProvider cacheProvider)
+        public CacheInterceptor(
+            ICacheProvider cacheProvider,
+            ICacheDurationProvider durationProvider)
         {
             _cacheProvider = cacheProvider;
+            _durationProvider = durationProvider;
         }
 
         public void Intercept(IInvocation invocation)
@@ -48,15 +52,26 @@
                 {
                     task.Wait();
                     result = task.GetType().GetProperty("Result")?.GetValue(task);
-                    _cacheProvider.SetValue(arguments, result, new TimeSpan(0, 0, 30));
+                    _cacheProvider.SetValue(arguments, result, GetDuration(invocation));
                 } 
                 else
                 {
-                    _cacheProvider.SetValue(arguments, invocation.ReturnValue, new TimeSpan(0, 0, 30));
+                    _cacheProvider.SetValue(arguments, invocation.ReturnValue, GetDuration(invocation));
                 }
             }
 
             var value = invocation.ReturnValue;
+        }
+
+        private TimeSpan GetDuration(IInvocation invocation)
+        {
+            var methodInfo = invocation.MethodInvocationTarget;
+            if (methodInfo == null)
+            {
+                methodInfo = invocation.Method;
+            }
+
+            return _durationProvider.GetDuration(methodInfo);
         }
 
         private bool CachIsAllow(IInvocation invocation)
@@ -99,11 +114,6 @@
             var resultType = invocation.Method.ReturnType.GetGenericArguments()[0];
             var mi = handleAsyncMethodInfo.MakeGenericMethod(resultType);
             invocation.ReturnValue = mi.Invoke(this, new[] { resultValue });
-        }
-
-        private Task<T> HandleAsyncWithResult<T>(T result)
-        {
-            return Task.FromResult(result);
         }
     }
 }

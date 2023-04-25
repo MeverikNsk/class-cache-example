@@ -6,11 +6,11 @@
     using System.Text.Json;
     using XSystem.Security.Cryptography;
 
-    public class CacheProvider : ICacheProvider
+    public class ClassCacheProvider : ICacheProvider
     {
         public IMemoryCache _memoryCache;
 
-        public CacheProvider(IMemoryCache memoryCache)
+        public ClassCacheProvider(IMemoryCache memoryCache)
         {
             _memoryCache = memoryCache;
         }
@@ -29,10 +29,28 @@
 
         private string GetHash(IDictionary<string, object> cacheRequest)
         {
-            var jsonStr = JsonSerializer.Serialize(cacheRequest);
-            var tmpSource = ASCIIEncoding.ASCII.GetBytes(jsonStr);
-            byte[] tmpNewHash = new MD5CryptoServiceProvider().ComputeHash(tmpSource);
-            return ByteArrayToString(tmpNewHash);
+            var hash = new List<string>();
+            
+            foreach (var kvp in cacheRequest)
+            {
+                var obj = kvp.Value as IClassCachHash;
+
+                if (obj != null)
+                {
+                    hash.Add($"{kvp.Key}_{obj.GetHash()}");
+                } 
+                else
+                {
+                    var jsonStr = JsonSerializer.Serialize(kvp.Value);
+                    var tmpSource = Encoding.ASCII.GetBytes(jsonStr);
+                    byte[] tmpNewHash = new MD5CryptoServiceProvider().ComputeHash(tmpSource);
+                    hash.Add($"{kvp.Key}_{ByteArrayToString(tmpNewHash)}");
+                }
+                
+            }
+
+            var hashJsonStr = JsonSerializer.Serialize(hash);
+            return hashJsonStr;
         }
         
         private string ByteArrayToString(byte[] arrInput)

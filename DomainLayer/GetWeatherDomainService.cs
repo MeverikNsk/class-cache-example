@@ -1,6 +1,6 @@
 ﻿namespace ClassCache.DomainLayer
 {
-    using ClassCache.Cache;
+    using ClassCache.Cache.Attributes;
     using ClassCache.Models;
     using System.Threading.Tasks;
 
@@ -12,13 +12,18 @@
             _logger = logger;
         }
 
+        [CacheDuration(0, 0, 30)]
         public async Task<GetWeatherResponse> GetWeatherAsync(GetWeatherRequest request)
         {
             return await Task.FromResult(GetWeather(request));
         }
 
+        [CacheDuration(0, 0, 30)]
         public GetWeatherResponse GetWeather(GetWeatherRequest request)
         {
+
+            Thread.Sleep(2000);
+
             var result = new GetWeatherResponse
             {
                 Items = new List<string>

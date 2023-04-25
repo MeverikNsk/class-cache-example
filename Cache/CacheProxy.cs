@@ -13,12 +13,18 @@
             _serviceProvider = serviceProvider;
         }
 
-        public TService CreateProxy()
+        public TService CreateProxy(IClassCacheOptions options)
         {
             var generator = new ProxyGenerator();
             var service = _serviceProvider.GetRequiredService<TImplementation>();
-            var cachProvider = _serviceProvider.GetRequiredService<ICacheProvider>();
-            var fooInterfaceProxyWithCallLogerInterceptor = generator.CreateInterfaceProxyWithTarget(typeof(TService), service, new CacheInterceptor(cachProvider));
+            var cachProvider = options.CachProvider ?? _serviceProvider.GetRequiredService<ClassCacheProvider>();
+            var durationProvider = options.CachDurationProvider ?? _serviceProvider.GetRequiredService<ClassCacheDurationProvider>();
+            var fooInterfaceProxyWithCallLogerInterceptor = generator.CreateInterfaceProxyWithTarget(
+                typeof(TService), 
+                service, 
+                new CacheInterceptor(
+                    cachProvider, 
+                    durationProvider));
             return (TService)fooInterfaceProxyWithCallLogerInterceptor;
         }
     }
