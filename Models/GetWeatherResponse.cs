@@ -1,4 +1,4 @@
-﻿namespace ClassСache.Models
+﻿namespace ClassCache.Models
 {
     public class GetWeatherResponse
     {

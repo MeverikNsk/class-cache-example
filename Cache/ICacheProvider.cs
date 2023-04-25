@@ -1,4 +1,4 @@
-﻿namespace ClassСache.Cashe
+﻿namespace ClassCache.Cache
 {
     public interface ICacheProvider
     {

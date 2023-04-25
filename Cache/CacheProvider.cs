@@ -1,4 +1,4 @@
-﻿namespace ClassСache.Cashe
+﻿namespace ClassCache.Cache
 {
     using Microsoft.Extensions.Caching.Memory;
     using System.Collections.Generic;
