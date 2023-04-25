@@ -1,7 +1,9 @@
 ﻿namespace ClassCache.Cache.Extensions
 {
     using ClassCache.Cache.Exceptions;
+    using ClassCache.Cache.Redis;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Options;
 
     public static class ClassCacheExtensions
     {
@@ -12,38 +14,40 @@
             services.AddTransient<TImplementation>();
             services.AddTransient<CacheProxy<TService, TImplementation>>();
 
-            var opt = services.BuildServiceProvider().GetService<IClassCacheOptions>();
+            var opt = services.BuildServiceProvider().GetService<ClassCacheOptions>();
             if (opt == null)
             {
                 throw new ClassCacheException("Необходимо зарегистрировать использование ClassCach, выполните метод AddClassCaching");
             }
 
-            return services.AddTransient(proxy => proxy.GetRequiredService<CacheProxy<TService, TImplementation>>().CreateProxy(opt));
+            return services.AddTransient(proxy => proxy.GetRequiredService<CacheProxy<TService, TImplementation>>().CreateProxy());
         }
 
-        public static IServiceCollection AddClassCaching(this IServiceCollection services, Action<IClassCacheOptions>? options = null)
+        public static IServiceCollection AddClassCaching(this IServiceCollection services, Action<ClassCacheOptions>? options = null)
         {
-            services.AddSingleton<IClassCacheOptions>(proxy =>
-            {
-                var classCacheOptions = new ClassCacheOptions();
+            services.AddTransient<ClassCacheOptions>();
+            if (options != null)
+            {                
+                services.AddOptions();
+                services.Configure(options);
+            }
+                       
+            var opt = services.BuildServiceProvider().GetRequiredService<IOptions<ClassCacheOptions>>();
 
-                if (options != null)
-                {
-                    options.Invoke(classCacheOptions);
-                }
-
-                return classCacheOptions;
-            });
-
-            var opt = services.BuildServiceProvider().GetRequiredService<IClassCacheOptions>();
-
-            if (opt.CachProvider == null)
+            if (opt.Value.CachProvider == null && opt.Value.RedisCacheOptions == null)
             {
                 services.AddMemoryCache();
                 services.AddTransient<ClassCacheProvider>();
             }
 
-            if (opt.CachDurationProvider == null)
+            if (opt.Value.RedisCacheOptions != null)
+            {
+                services.AddTransient<RedisCachProvider>();
+
+                services.AddStackExchangeRedisCache(opt.Value.RedisCacheOptions);
+            }
+
+            if (opt.Value.CachDurationProvider == null)
             {
                 services.AddTransient<ClassCacheDurationProvider>();
             }

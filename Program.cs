@@ -7,9 +7,14 @@ builder.Services.AddControllers();
 
 builder.Services.AddClassCaching(opt =>
 {
-    //opt.CachProvider = new CustomCachProvider();
+    opt.CachProvider = new CustomCachProvider();
+        
+    opt.UseRedis(settings =>
+    {
+        settings.Configuration = "localhost";
+        settings.InstanceName = "classCachLocal";
+    });
 });
-
 
 builder.Services.AddCacheTransient<IGetWeatherDomainService, GetWeatherDomainService>();
 
