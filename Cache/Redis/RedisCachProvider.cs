@@ -4,7 +4,6 @@
     using Microsoft.Extensions.Caching.Distributed;
     using System;
     using System.Collections.Generic;
-    using System.Reflection;
     using System.Text.Json;
 
     public class RedisCachProvider : ICacheProvider
@@ -19,15 +18,16 @@
         public void SetValue(IDictionary<string, object> cacheRequest, object? cacheValue, TimeSpan duration)
         {
             var hash = HashHelper.GetHash(cacheRequest);
+
             if (cacheValue != null)
             {
-                var var = new RedisValue
+                var redisVariable = new RedisValue
                 {
                     TypeFullName = cacheValue.GetType().FullName ?? throw new Exception($"Ошибка получения полного имени класса объекта {cacheValue}"),
                     JsonValue = JsonSerializer.Serialize(cacheValue)
                 };
 
-                var objStr = JsonSerializer.Serialize(var);                
+                var objStr = JsonSerializer.Serialize(redisVariable);                
                 _distributedCache.SetString(hash, objStr, new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = duration });
             }
         }

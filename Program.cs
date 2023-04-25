@@ -7,8 +7,6 @@ builder.Services.AddControllers();
 
 builder.Services.AddClassCaching(opt =>
 {
-    opt.CachProvider = new CustomCachProvider();
-        
     opt.UseRedis(settings =>
     {
         settings.Configuration = "localhost";

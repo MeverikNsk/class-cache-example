@@ -12,13 +12,13 @@
             _logger = logger;
         }
 
-        [CacheDuration(0, 1, 30)]
+        [CacheDuration(0, 1, 48)]
         public async Task<GetWeatherResponse> GetWeatherAsync(GetWeatherRequest request)
         {
             return await Task.FromResult(GetWeather(request));
         }
 
-        [CacheDuration(0, 1, 30)]
+        [CacheDuration(0, 1, 48)]
         public GetWeatherResponse GetWeather(GetWeatherRequest request)
         {
 
