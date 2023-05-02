@@ -43,7 +43,6 @@
             if (opt.Value.RedisCacheOptions != null)
             {
                 services.AddTransient<RedisCachProvider>();
-
                 services.AddStackExchangeRedisCache(opt.Value.RedisCacheOptions);
             }
 

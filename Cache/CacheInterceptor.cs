@@ -115,5 +115,10 @@
             var mi = handleAsyncMethodInfo.MakeGenericMethod(resultType);
             invocation.ReturnValue = mi.Invoke(this, new[] { resultValue });
         }
+
+        private Task<T> HandleAsyncWithResult<T>(T result)
+        {
+            return Task.FromResult(result);
+        }
     }
 }

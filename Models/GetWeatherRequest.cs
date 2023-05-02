@@ -2,7 +2,7 @@
 {
     using ClassCache.Cache;
 
-    public class GetWeatherRequest //: IClassCachHash
+    public class GetWeatherRequest : IClassCachHash
     {
         public int Id { get; set; }
 
